@@ -1,4 +1,4 @@
-package client
+package s3client
 
 import (
 	"context"
@@ -18,7 +18,7 @@ type MinioConfig struct {
 
 type MinioStorageOpts struct {
 	fx.In
-	MinioConfig
+	*MinioConfig
 
 	SecretsProvider SecretsProvider
 	Lifecycle       fx.Lifecycle
