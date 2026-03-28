@@ -5,23 +5,22 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/minio/minio-go/v7"
+	minio "github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 	"go.uber.org/fx"
 )
 
 type MinioConfig struct {
-	KeyEndpoint  string
-	KeyAccessKey string
-	KeySecret    string
+	Endpoint  string
+	AccessKey string
+	Secret    string
 }
 
 type MinioStorageOpts struct {
 	fx.In
 	*MinioConfig
 
-	SecretsProvider SecretsProvider
-	Lifecycle       fx.Lifecycle
+	Lifecycle fx.Lifecycle
 }
 
 type MinioStorage struct {
@@ -34,17 +33,13 @@ type MinioStorage struct {
 func NewMinioStorage(
 	opts MinioStorageOpts,
 ) (*MinioStorage, error) {
-	get := func(key string) string {
-		return opts.SecretsProvider.MustGet(context.Background(), key).(string)
-	}
-
 	client, err := minio.New(
-		get(opts.KeyEndpoint),
+		opts.Endpoint,
 		&minio.Options{
 			Creds: credentials.NewStaticV4(
-				get(opts.KeyAccessKey),
-				get(opts.KeySecret),
-				"", // ?
+				opts.AccessKey,
+				opts.Secret,
+				"",
 			),
 		},
 	)
