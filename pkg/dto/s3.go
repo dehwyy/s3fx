@@ -1,6 +1,9 @@
 package dto
 
-import "io"
+import (
+	"io"
+	"time"
+)
 
 type CreateRequest struct {
 	URL  string
@@ -14,4 +17,13 @@ type GetRequest struct {
 
 type GetResponse struct {
 	Object io.ReadCloser
+}
+
+type CreatePresignedURLRequest struct {
+	URL    string
+	Expiry time.Duration
+}
+
+type CreatePresignedURLResponse struct {
+	URL string
 }

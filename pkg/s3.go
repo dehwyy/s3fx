@@ -17,4 +17,8 @@ type ObjectStorage interface {
 		ctx context.Context,
 		req dto.GetRequest,
 	) (dto.GetResponse, error)
+	CreatePresignedURL(
+		ctx context.Context,
+		req dto.CreatePresignedURLRequest,
+	) (dto.CreatePresignedURLResponse, error)
 }
