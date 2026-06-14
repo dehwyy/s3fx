@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"time"
 
 	minio "github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
@@ -49,11 +50,22 @@ func NewMinioStorage(
 
 	opts.Lifecycle.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
-			_, err := client.ListBuckets(ctx)
-			if err != nil {
-				return fmt.Errorf("minio client could not access server: %w", err)
+			const attempts = 5
+			var lastErr error
+			for attempt := 1; attempt <= attempts; attempt++ {
+				attemptCtx, cancel := context.WithTimeout(ctx, 2*time.Second)
+				_, lastErr = client.ListBuckets(attemptCtx)
+				cancel()
+				if lastErr == nil {
+					return nil
+				}
+				select {
+				case <-ctx.Done():
+					return ctx.Err()
+				case <-time.After(500 * time.Millisecond):
+				}
 			}
-			return nil
+			return fmt.Errorf("minio client could not access server after %d attempts: %w", attempts, lastErr)
 		},
 	})
 
