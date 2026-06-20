@@ -2,7 +2,7 @@ package s3client
 
 import (
 	"context"
-	"fmt"
+	"log"
 	"sync"
 	"time"
 
@@ -50,22 +50,12 @@ func NewMinioStorage(
 
 	opts.Lifecycle.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
-			const attempts = 5
-			var lastErr error
-			for attempt := 1; attempt <= attempts; attempt++ {
-				attemptCtx, cancel := context.WithTimeout(ctx, 2*time.Second)
-				_, lastErr = client.ListBuckets(attemptCtx)
-				cancel()
-				if lastErr == nil {
-					return nil
-				}
-				select {
-				case <-ctx.Done():
-					return ctx.Err()
-				case <-time.After(500 * time.Millisecond):
-				}
+			attemptCtx, cancel := context.WithTimeout(ctx, 2*time.Second)
+			defer cancel()
+			if _, err := client.ListBuckets(attemptCtx); err != nil {
+				log.Printf("s3fx: initial connectivity check to %s failed, starting anyway (runtime ops retry): %v", opts.Endpoint, err)
 			}
-			return fmt.Errorf("minio client could not access server after %d attempts: %w", attempts, lastErr)
+			return nil
 		},
 	})
 
