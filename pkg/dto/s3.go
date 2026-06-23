@@ -20,8 +20,9 @@ type GetResponse struct {
 }
 
 type CreatePresignedURLRequest struct {
-	URL    string
-	Expiry time.Duration
+	URL      string
+	Expiry   time.Duration
+	Filename string
 }
 
 type CreatePresignedURLResponse struct {

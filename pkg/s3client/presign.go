@@ -2,6 +2,7 @@ package s3client
 
 import (
 	"context"
+	"fmt"
 	"net/url"
 
 	"github.com/dehwyy/s3fx/pkg/dto"
@@ -16,12 +17,20 @@ func (storage *MinioStorage) CreatePresignedURL(
 		return dto.CreatePresignedURLResponse{}, err
 	}
 
+	queryParams := url.Values{}
+	if req.Filename != "" {
+		queryParams.Set(
+			"response-content-disposition",
+			fmt.Sprintf("attachment; filename=\"%s\"", req.Filename),
+		)
+	}
+
 	presignedURL, err := storage.client.PresignedGetObject(
 		ctx,
 		bucket,
 		objectPath,
 		req.Expiry,
-		url.Values{},
+		queryParams,
 	)
 	if err != nil {
 		return dto.CreatePresignedURLResponse{}, err
