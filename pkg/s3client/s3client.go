@@ -15,6 +15,7 @@ type MinioConfig struct {
 	Endpoint  string
 	AccessKey string
 	Secret    string
+	Secure    bool
 }
 
 type MinioStorageOpts struct {
@@ -34,14 +35,20 @@ type MinioStorage struct {
 func NewMinioStorage(
 	opts MinioStorageOpts,
 ) (*MinioStorage, error) {
-	client, err := minio.New(
+	host, secure := parseEndpoint(
 		opts.Endpoint,
+		opts.Secure,
+	)
+
+	client, err := minio.New(
+		host,
 		&minio.Options{
 			Creds: credentials.NewStaticV4(
 				opts.AccessKey,
 				opts.Secret,
 				"",
 			),
+			Secure: secure,
 		},
 	)
 	if err != nil {
